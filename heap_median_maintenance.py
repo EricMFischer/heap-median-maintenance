@@ -37,8 +37,9 @@ class Heap():
         self._heap[i], self._heap[j] = self._heap[j], self._heap[i]
 
     # input: parent and child indices
-    # output: final index of child
     def _sift_up(self, p_i, c_i):
+        if p_i == -1:
+            return
         p = self._heap[p_i]
         c = self._heap[c_i]
         while (not self._is_balanced(p, c)):
@@ -65,12 +66,10 @@ class Heap():
         return self._heap
 
     # inserts node in O(logn) time
-    # output: node insertion index
     def insert(self, node):
         self._heap.append(node)
         node_i = len(self._heap) - 1
-        if node_i is not 0:
-            self._sift_up((node_i - 1) // 2, node_i)
+        self._sift_up((node_i - 1) // 2, node_i)
 
     # input: parent index
     # output: index of smaller or greater child, one index if other DNE, or None
@@ -122,96 +121,61 @@ class Heap():
         return removed
 
     # initializes a heap in O(n) time
-    def heapify(self):
+    def heapify(self):  # to do
         return self._heap
 
 
 # input: filename
-# output: sum of 10000 medians (for 10000 numbers in input file), modulo 10000
+# output: sum of 10000 medians (for 10000 numbers in input file) modulo 10000
 def heap_median_maintenance(filename):
     sum = 0
     H_low = Heap(0)  # max heap
     H_high = Heap()  # min heap
     l_size = 0
     h_size = 0
-    counter = 0
+
     with open(filename) as f_handle:
         for line in f_handle:
             n = int(line)
             median = H_low.get_root()
-            counter += 1
             if not median:
                 H_low.insert(n)
                 sum += n
                 l_size += 1
             elif l_size == h_size:
-                # if n > last median and also <= root of high heap (and heaps sizes equal), add
-                # n (the median) to sum and insert into low heap
-                if n is median or (n > median and n <= H_high.get_root()):
-                    sum += n
-                    H_low.insert(n)
-                # if n > last median but NOT <= root of high heap, add root of high heap to sum
-                # and insert n into high heap, only to extract the root and add to low heap
-                elif n > median:
+                # if n > median, insert n into high heap only to extract the min, insert this
+                # median into low heap, and add it to sum
+                if n > median:
                     H_high.insert(n)
                     high_min = H_high.extract_min()
                     H_low.insert(high_min)
                     sum += high_min
-                # if n < last median (and heaps equal), insert n into low heap and add root to sum
+                # if n <= last median, insert n into low heap and add root to sum
                 else:
                     H_low.insert(n)
                     sum += H_low.get_root()
                 l_size += 1
             elif l_size > h_size:
-                if n is median:
-                    sum += n
+                # if n >= median, add already known median to sum and insert into high heap
+                if n >= median:
                     H_high.insert(n)
-                # if n > last median and also <= root of high heap (and low heap bigger), add
-                # n (the median) to sum and insert into high heap
-                # if n > last median but NOT <= root of high heap, insert n into high heap and
-                # add root to sum
-                elif n > median:
                     sum += median
-                    H_high.insert(n)
-                # if n < last median (and low heap bigger), insert n into low heap, only to extract
-                # the root and add to high heap, and add root of low heap to sum
+                # if n < last median, insert n into low heap only to extract the max, insert
+                # it into high heap, and add root of low heap to sum
                 else:
                     H_low.insert(n)
                     H_high.insert(H_low.extract_max())
                     sum += H_low.get_root()
                 h_size += 1
 
-    # print(l_size)
-    # print(h_size)
-    print(H_low.get_nodes())
-    print('high: ')
-    print(H_high.get_nodes())
-    print('counter: ', counter)
     return sum % 10000
 
 
 def main():
-
     start = time.time()
     result = heap_median_maintenance('heap_median_maintenance.txt')
     print('result: ', result)
     print('elapsed time: ', time.time() - start)
-
-    # heap practice
-    # h = Heap(0)
-    # h.insert(9)
-    # h.insert(4)
-    # h.insert(5)
-    # h.insert(8)
-    # h.insert(1)
-    # h.insert(0)
-    # h.extract_max()
-    # h.extract_max()
-    # print('nodes: ', h.get_nodes())
-    # print(nodes[0] < nodes[1])
-    # print(nodes[0] < nodes[2])
-    # print(nodes[1] < nodes[3])
-    # print(nodes[1] < nodes[4])
 
 
 main()
